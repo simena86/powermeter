@@ -1,0 +1,5 @@
+from loggers import *
+
+getPriceData()
+
+
