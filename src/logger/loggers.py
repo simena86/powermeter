@@ -1,9 +1,13 @@
 #!/usr/bin/python
 import urllib
+import re
+import requests
+import sys
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from lxml import etree, html
 import StringIO
-import urllib
-import re
+from selenium import webdriver
+import time
 
 def dataToCSVLine(date,data,index):
 	ret=''
@@ -12,26 +16,6 @@ def dataToCSVLine(date,data,index):
 		ret= a + ',' + ret  
 	ret=ret + str(index) + ", 00, " + str(data)
 	return ret
-
-def getSpotPriceData():
-	path='spot.html'
-	parser=etree.HTMLParser()
-	tree=etree.parse(path,parser)
-	xpath='//table[@id="ctl00_FullRegion_npsGridView_trkGrid_ctl00"]'
-	root = tree.xpath(xpath)
-	d=tree.xpath(xpath + '//tr[position()=1]//td[position()=1]/text()')
-	date=d[0]
-	trHeimColIndex=14
-	data=[]
-	for row in root:
-		for col in row.xpath('//td[position()='+str(trHeimColIndex)+']/text()'):
-			data.append(col)
-		
-	out=open('price_data.csv','w')
-	for itm in range(24):
-		out.write( dataToCSVLine(date,data[itm],itm))
-		out.write('\n')
-	out.close()
 
 def dataToTemp(raw):
 	temp=raw.split(",")
@@ -62,10 +46,26 @@ def getTemperatureData():
 		out.write('\n')
 	out.close()
 
+# get the data from nordpoolspot.com for trondheim. data is fetched from website
 def getPriceData():
-	url="http://www.nordpoolspot.com/Market-data1/Elspot/Area-Prices/ALL1/Hourly/"
-	page = html.fromstring(urllib.urlopen(url).read())
-	tempDate=page.xpath('//tr[@class="rgGroupHeader"]//p/text()')
+	user_agent = (
+	    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) " +
+		 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36"
+	)
+	dcap = dict(DesiredCapabilities.PHANTOMJS)
+	dcap["phantomjs.page.settings.userAgent"] = user_agent
+	URL='http://www.nordpoolspot.com/Market-data1/Elspot/Area-Prices/ALL1/Hourly/'
+	browser = webdriver.PhantomJS(executable_path='./phantomjs',desired_capabilities=dcap)
+	browser.get(URL)
+	page=html.fromstring(browser.page_source)
+	tempDate= page.xpath('//tr[@class="rgGroupHeader"]//p/text()')
+	nextId="ctl00_FullRegion_npsGridView_lnkNext"
+	nextBtn=browser.find_element_by_id(nextId)
+	time.sleep(1)
+	nextBtn.click()
+	time.sleep(1)
+	page = html.fromstring(browser.page_source)
+	browser.close()
 	tempDate=tempDate[0].split('-')
 	dayMonthYear=''
 	for itm in tempDate:
@@ -73,16 +73,17 @@ def getPriceData():
 	data=[]
 	xpath='//table[@id="ctl00_FullRegion_npsGridView_trkGrid_ctl00"]'
 	index =0
+	column=5
 	for row in page.xpath(xpath):
-		for col in row.xpath('//td[position()=14]/text()'):
-			if index>23:
-				break
+		for col in row.xpath('//td[position()='+str(column)+']/text()'):
 			index=index+1
-			print col
-			data.append(col)
-	print index	
+			if index>24:
+				break
+			elif index>0:
+				print col
+				data.append(col)
 	out=open('price_data.csv','w')
 	for itm in range(24):
-		out.write(dayMonthYear+str( itm)+",0,0,"+str(data[itm] ))
+		out.write(dayMonthYear+str( itm)+",0,0,"+str(data[itm] ).replace(',','.'))
 		out.write('\n')
 	out.close()
