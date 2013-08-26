@@ -55,7 +55,7 @@ def getPriceData():
 	dcap = dict(DesiredCapabilities.PHANTOMJS)
 	dcap["phantomjs.page.settings.userAgent"] = user_agent
 	URL='http://www.nordpoolspot.com/Market-data1/Elspot/Area-Prices/ALL1/Hourly/'
-	browser = webdriver.PhantomJS(executable_path='./phantomjs',desired_capabilities=dcap)
+	browser = webdriver.PhantomJS(executable_path='./phantomjs_raspberry',desired_capabilities=dcap)
 	browser.get(URL)
 	page=html.fromstring(browser.page_source)
 	tempDate= page.xpath('//tr[@class="rgGroupHeader"]//p/text()')
