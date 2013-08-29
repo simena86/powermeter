@@ -126,7 +126,6 @@ def getPriceData(day='today'):
 
 	outData=[]
 	for itm in range(24):
-		print data[itm]
 		price=float(data[itm].replace(',','.'))*nok*0.001
 		price=round(price,3)
 		outData.append(tempDate[::-1]+[str(itm),'0','0',str(price)])
@@ -155,11 +154,40 @@ def csvFile2Array(fileName):
 def updateTempAndPriceData():
 	tempLst=getTemperatureData()
 	priceLst= getPriceData()
-	tempFile='tempData.csv'
-	priceFile='priceData.csv'
-	tempDataFile=csvFile2Array(tempFile)
-	priceDataFile=csvFile2Array(priceFile)
-		
+	tempFile='temperature_data.csv'
+	priceFile='price_data.csv'
+	tempDataFileLst=csvFile2Array(tempFile)
+	priceDataFileLst=csvFile2Array(priceFile)
+	priceRow=0
+
+	tempRow=0
+	for row in tempLst:
+		date=row[:6]	
+		temp=row[6]
+		tempDataFileLst.append(date+[temp])
+		tempRow=tempRow+1
+
+	for row in priceLst:
+		date=row[:6]
+		price=row[6]
+		priceDataFileLst.append(date+[price])
+		tempDataFileLst.append(date+[0])
+		priceRow=priceRow+1
+
+	writeArrayToCSVFile(tempDataFileLst,tempFile)
+	writeArrayToCSVFile(priceDataFileLst,priceFile)
+
+
+def writeArrayToCSVFile(array,fileName):
+	f=open(fileName,'w')
+	line=''
+	for row in array:
+		for itm in row:
+			line=line + str(itm) + ',' 
+		f.write(line+'\n')	
+		line=''
+
+
 
 updateTempAndPriceData()
 
