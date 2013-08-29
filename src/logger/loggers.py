@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import platform
+from selenium.webdriver.common.keys import Keys
 import urllib
 import re
 import requests
@@ -70,7 +71,7 @@ def euros2NOK(browser):
 
 # get the data from nordpoolspot.com for trondheim. 
 # data is fetched from website
-def getPriceData():
+def getPriceData(day='today'):
 	dst=platform.dist()
 	if dst[0]=='Ubuntu':
 		if struct.calcsize("P")*8==64:
@@ -91,10 +92,14 @@ def getPriceData():
 	page=html.fromstring(browser.page_source)
 	tempDate= page.xpath('//tr[@class="rgGroupHeader"]//p/text()')
 	nextId="ctl00_FullRegion_npsGridView_lnkNext"
-	nextBtn=browser.find_element_by_id(nextId)
-	time.sleep(0.1)
-	nextBtn.click()
-	time.sleep(0.1)
+	time.sleep(1)
+	optLstName="ctl00$FullRegion$npsActionPanelView$ddlEntities" 
+	lst=browser.find_element_by_name(optLstName)
+	for option in lst.find_elements_by_tag_name('option'):
+		if option.text==' Tr.heim':
+			option.click()
+			break
+	time.sleep(1)
 	page = html.fromstring(browser.page_source)
 	browser.close()
 	tempDate=tempDate[0].split('-')
@@ -102,18 +107,26 @@ def getPriceData():
 	for itm in tempDate:
 		dayMonthYear=itm+","+dayMonthYear
 	data=[]
-	xpath='//table[@id="ctl00_FullRegion_npsGridView_trkGrid_ctl00"]'
+	xpath='//table[@id="ctl00_FullRegion_npsGridView_trkGrid_ctl00"]//tbody'
 	index =0
-	column=5
+	if day=='today':
+		column=3
+	elif day=='yesterday':
+		column=4
+	else:
+		print 'Wrong argument to getPriceData. Must be yesterday or today. Using today'
+		column=3
 	for row in page.xpath(xpath):
 		for col in row.xpath('//td[position()='+str(column)+']/text()'):
-			index=index+1
 			if index>24:
 				break
-			elif index>0:
+			elif not re.search('[a-zA-Z]', str(col)):
 				data.append(col)
+			index=index+1
+
 	outData=[]
 	for itm in range(24):
+		print data[itm]
 		price=float(data[itm].replace(',','.'))*nok*0.001
 		price=round(price,3)
 		outData.append(tempDate[::-1]+[str(itm),'0','0',str(price)])
@@ -126,6 +139,9 @@ def csvFile2Array(fileName):
 		return []
 	data=[]
 	i=0
+	# open file and thus creating it if it does not exist already
+	f=open(fileName,'w')
+	f.close()
 	f=open(fileName,'r')
 	for line in f:
 		data.append([])
@@ -139,12 +155,37 @@ def csvFile2Array(fileName):
 def updateTempAndPriceData():
 	tempLst=getTemperatureData()
 	priceLst= getPriceData()
-	fileName='tempAndPrice.csv'
-	f=open(fileName,'w')
-	f.close()
-	dataFromFile=csvFile2Array(fileName)
+	tempFile='tempData.csv'
+	priceFile='priceData.csv'
+	tempDataFile=csvFile2Array(tempFile)
+	priceDataFile=csvFile2Array(priceFile)
 		
 
 updateTempAndPriceData()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
