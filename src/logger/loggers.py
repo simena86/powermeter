@@ -139,11 +139,13 @@ def csvFile2Array(fileName):
 	data=[]
 	i=0
 	# open file and thus creating it if it does not exist already
-	f=open(fileName,'w')
-	f.close()
+	#f=open(fileName,'w')
+	#f.close()
+	print fileName
 	f=open(fileName,'r')
 	for line in f:
 		data.append([])
+		print line
 		for itm in line.split(','):
 			itm=itm.replace('\n','')
 			data[i].append(itm)
