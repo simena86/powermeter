@@ -2,3 +2,5 @@
 phantomjs_*
 *.pyc
 *.log
+*.swp
+
