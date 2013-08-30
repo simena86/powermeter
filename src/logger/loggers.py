@@ -123,7 +123,6 @@ def getPriceData(day='today'):
 			elif not re.search('[a-zA-Z]', str(col)):
 				data.append(col)
 			index=index+1
-
 	outData=[]
 	for itm in range(24):
 		price=float(data[itm].replace(',','.'))*nok*0.001
@@ -141,11 +140,9 @@ def csvFile2Array(fileName):
 	# open file and thus creating it if it does not exist already
 	#f=open(fileName,'w')
 	#f.close()
-	print fileName
 	f=open(fileName,'r')
 	for line in f:
 		data.append([])
-		print line
 		for itm in line.split(','):
 			itm=itm.replace('\n','')
 			data[i].append(itm)
@@ -153,16 +150,17 @@ def csvFile2Array(fileName):
 	f.close()
 	return data
 
+# update the data files with the new data
 def updateTempAndPriceData():
-	tempLst=getTemperatureData()
-	priceLst= getPriceData()
 	tempFile='temperature_data.csv'
 	priceFile='price_data.csv'
+	tempLst=getTemperatureData()
+	priceLst= getPriceData()
 	tempDataFileLst=csvFile2Array(tempFile)
 	priceDataFileLst=csvFile2Array(priceFile)
 	priceRow=0
-
 	tempRow=0
+	tempDataFileLst=removeZerosFromTempData(tempDataFileLst)	
 	for row in tempLst:
 		date=row[:6]	
 		temp=row[6]
@@ -176,19 +174,39 @@ def updateTempAndPriceData():
 		tempDataFileLst.append(date+[0])
 		priceRow=priceRow+1
 
+	tempDataFileLst=removeOldDataFromFile(tempDataFileLst)
+	priceDataFileLst=removeOldDataFromFile(priceDataFileLst)
 	writeArrayToCSVFile(tempDataFileLst,tempFile)
 	writeArrayToCSVFile(priceDataFileLst,priceFile)
 
+# remove old data
+def removeOldDataFromFile(dataArr):
+	maxDataSamplesPerFile=24*3
+	arrLen=len(dataArr)	
+	if maxDataSamplesPerFile>arrLen:
+		return dataArr
+	for i in range(arrLen-maxDataSamplesPerFile):
+		dataArr.pop(0)
+	return dataArr
 
+
+# remove the 24 zero rows at end of temperature data
+def removeZerosFromTempData(tempData):
+	if not len(tempData)<23:
+		for i in range(24):
+			tempData.pop()
+	return tempData
+
+
+# write array to a csv formatted file called 'filename'
 def writeArrayToCSVFile(array,fileName):
 	f=open(fileName,'w')
 	line=''
 	for row in array:
 		for itm in row:
 			line=line + str(itm) + ',' 
-		f.write(line+'\n')	
+		f.write(line[:-1]+'\n')	# remove the last comma
 		line=''
-
 
 
 updateTempAndPriceData()
