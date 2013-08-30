@@ -19,4 +19,3 @@ RPIO.add_interrupt_callback(14, gpio_callback, edge='rising', \
 # Starts waiting for interrupts (exit with Ctrl+C)
 RPIO.wait_for_interrupts()
 
-
