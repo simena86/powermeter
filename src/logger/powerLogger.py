@@ -2,7 +2,7 @@
 
 
 """
-Example of how to use GPIO and TCP interrupts with RPIO.
+ddExample of how to use GPIO and TCP interrupts with RPIO.
 RPIO Documentation: http://pythonhosted.org/RPIO
 """
 import RPIO
