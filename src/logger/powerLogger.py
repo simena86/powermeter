@@ -1,21 +1,36 @@
-#!/usr/bin/python
+import RPi.GPIO as GPIO
+import time, threading
+from datetime import datetime
+
+# setup GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(23, GPIO.IN)
+raw_input("Press Enter when ready\n>")
+
+imps=0
+
+def logResult():
+	global imps
+	fileName='power_data.csv'
+	f=open(fileName,'a')	
+	t=datetime.now()		
+	outStr= '%s,%s,%s,%s,%s,%s,%s' % (t.year, t.month, t.day, t.hour,t.minute, t.second,imps) 
+	f.write(outStr + '\n')
+	print 'impulses: ' + str(imps)
+	imps=0
+	f.close()
+	logInterval=60*10
+	threading.Timer(logInterval,logResult).start()
+
+try:
+	logResult()
+	while 1:
+		GPIO.wait_for_edge(23, GPIO.FALLING)
+		imps=imps+1
+		print 'imp logged!'
 
 
-"""
-Example of how to use GPIO and TCP interrupts with RPIO.
-RPIO Documentation: http://pythonhosted.org/RPIO
-"""
-import RPIO
-
-
-def gpio_callback(gpio_id, val):
-    print("gpio %s: %s" % (gpio_id, val))
-
-
-# Two GPIO interrupt callbacks (second one with a debouce timeout of 100ms)
-RPIO.add_interrupt_callback(14, gpio_callback, edge='rising', \
-        debounce_timeout_ms=100)
-
-# Starts waiting for interrupts (exit with Ctrl+C)
-RPIO.wait_for_interrupts()
-
+except KeyboardInterrupt:
+	GPIO.cleanup()       # clean up GPIO on CTRL+C exit
+	thread.exit()
+GPIO.cleanup()           # clean up GPIO on normal exit
