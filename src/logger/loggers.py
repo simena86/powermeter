@@ -181,7 +181,7 @@ def updateTempAndPriceData():
 
 # remove old data
 def removeOldDataFromFile(dataArr):
-	maxDataSamplesPerFile=24*3
+	maxDataSamplesPerFile=24*14
 	arrLen=len(dataArr)	
 	if maxDataSamplesPerFile>arrLen:
 		return dataArr
