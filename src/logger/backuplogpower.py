@@ -5,7 +5,6 @@ from datetime import datetime
 import sys,os, sched
 
 while 1:
-	time.sleep(0.5)	
 	try:
 		# setup GPIO
 		GPIO.setmode(GPIO.BCM)
@@ -17,37 +16,25 @@ while 1:
 		f.close()
 		while 1:
 			GPIO.wait_for_edge(23, GPIO.FALLING)
-			try:
-				f=open(file,'r')
-				nr=f.readline()
-				f.close()
-			except:
-				print "could not read from file"
-				nr=0
-				f.close()
+			f=open(file,'r')
+			nr=f.readline()
+			f.close()
 			nr=int(nr)
 			imps=nr+1
-			try:
-				f=open(file,'w')
-				f.write(str(imps))
-				f.close()
-			except:
-				print "could not write to powerTemp"
+			f=open(file,'w')
+			f.write(str(imps))
+			f.close()
+			time.sleep(0.4)
 
-			time.sleep(0.3)
-
-	except KeyboardInterrupt, e:
-		print(e)
+	except (KeyboardInterrupt):
 		f.close()	
 		GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 		exit(0)	
-	except SystemExit,e:
-		print e
+	except SystemExit:
 		f.close()
 		GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 		print "system exit"
-	except Exception, e:
-		print e
+	except:
 		f.close() 	
 		GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 		
