@@ -43,7 +43,10 @@ def getTemperatureData():
 	xpath='//table[@class="yr-table yr-table-hourly yr-popup-area"]'
 	for row in page.xpath(xpath):
 		for col in row.xpath('//td[position()=2]/text()'):
-			filtered=re.sub("[^0-9,\.]","",col)
+			if col[0]=='-':
+				filtered='-' + re.sub("[^0-9,\.]","",col)
+			else:
+				filtered=re.sub("[^0-9,\.]","",col)
 			if filtered.strip()!="":
 				data.append(dataToTemp(str(filtered)))
 	outData=[]		
